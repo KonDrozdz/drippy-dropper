@@ -23,7 +23,7 @@ const Dashboard: React.FC = () => {
   });
 
   const handleClose = (
-    event: React.SyntheticEvent | Event,
+    _event: React.SyntheticEvent | Event,
     reason?: SnackbarCloseReason,
   ) => {
     if (reason === 'clickaway') {
@@ -123,7 +123,7 @@ const Dashboard: React.FC = () => {
         open={open}
         autoHideDuration={5000}
         onClose={handleClose}
-        message="This Snackbar will be dismissed in 5 seconds."
+        message="Dodano plik"
       />
     </>
   );

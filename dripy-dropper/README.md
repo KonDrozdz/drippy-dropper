@@ -48,3 +48,49 @@ export default tseslint.config({
   },
 })
 ```
+
+## Running the Project
+
+To run the project, follow these steps:
+
+1. Install the dependencies:
+   ```sh
+   npm install
+   ```
+
+2. Start the development server:
+   ```sh
+   npm run dev
+   ```
+
+3. Open your browser and navigate to `http://localhost:3000` to see the application running.
+
+## Building the Project
+
+To build the project for production, run:
+```sh
+npm run build
+```
+
+The output will be in the `dist` directory.
+
+## Running the Backend
+
+To run the backend server, follow these steps:
+
+1. Navigate to the `Backend-Mock` directory:
+   ```sh
+   cd Backend-Mock
+   ```
+
+2. Install the dependencies:
+   ```sh
+   npm install
+   ```
+
+3. Start the backend server:
+   ```sh
+   node server.js
+   ```
+
+4. The backend server will be running on `http://localhost:5000`.

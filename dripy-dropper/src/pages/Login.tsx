@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { TextField, Button, Box, Typography } from "@mui/material";
 
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -20,7 +21,7 @@ const Login: React.FC = () => {
       navigate("/dashboard");
     } catch (error) {
       console.error("Login failed:", error);
-    }
+    } 
   };
 
   return (

@@ -1,41 +1,22 @@
-import React, { useState } from "react";
-import { Box, Typography, List, ListItem, ListItemText, ListItemAvatar, Avatar, IconButton, Collapse, Drawer } from "@mui/material";
-import FolderIcon from "@mui/icons-material/Folder";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ExpandLess from "@mui/icons-material/ExpandLess";
-import ExpandMore from "@mui/icons-material/ExpandMore";
-import FileIcon from "./FileIcon"; // Import the FileIcon component
-
-interface File {
-  id: string;
-  name: string;
-  url: string;
-}
-
-interface Folder {
-  id: string;
-  name: string;
-  subfolders?: Folder[];
-  files?: File[];
-}
-
-interface Item {
-  id: string;
-  name: string;
-  type: "file" | "folder";
-  url?: string;
-  subfolders?: Folder[];
-  files?: File[];
-}
-
+import React, { useState } from 'react';
+import { Box, Typography, List, ListItemText, ListItemAvatar, Avatar, IconButton, Collapse, ListItemButton, ListItemIcon, Drawer } from '@mui/material';
+import FolderIcon from '@mui/icons-material/Folder';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import FileIcon from './FileIcon';
+import { Folder, File } from "../interfaces/Folder"; // Import the Folder and File interfaces from the new file
+import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
+import "@cyntler/react-doc-viewer/dist/index.css";
 interface NestedFileListProps {
-  items: Item[];
+  items: Folder;
   handleDeleteFile: (fileId: string) => void;
 }
 
 const NestedFileList: React.FC<NestedFileListProps> = ({ items, handleDeleteFile }) => {
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleFolderClick = (folderId: string) => {
     const newOpenFolders = new Set(openFolders);
@@ -49,6 +30,7 @@ const NestedFileList: React.FC<NestedFileListProps> = ({ items, handleDeleteFile
 
   const handleFileClick = (file: File) => {
     setSelectedFile(file);
+    setDrawerOpen(true);
   };
 
   const renderFolder = (folder: Folder) => {
@@ -56,106 +38,97 @@ const NestedFileList: React.FC<NestedFileListProps> = ({ items, handleDeleteFile
 
     return (
       <div key={folder.id}>
-        <ListItem component="button" onClick={() => handleFolderClick(folder.id)}>
-          <ListItemAvatar>
-            <Avatar>
-              <FolderIcon />
-            </Avatar>
-          </ListItemAvatar>
+        <ListItemButton onClick={() => handleFolderClick(folder.id)}>
+          <ListItemIcon>
+            <FolderIcon />
+          </ListItemIcon>
           <ListItemText primary={folder.name} />
           {isOpen ? <ExpandLess /> : <ExpandMore />}
-        </ListItem>
+        </ListItemButton>
         <Collapse in={isOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             {folder.subfolders?.map(renderFolder)}
-            {folder.files?.map((file) => (
-              <ListItem key={file.id} sx={{ pl: 4 }} onClick={() => handleFileClick(file)}>
-                <ListItemAvatar>
-                  <Avatar>
-                    <FileIcon fileName={file.name} />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={file.name}
-                  secondary={<a href={file.url} target="_blank" rel="noopener noreferrer">Zobacz plik</a>}
-                />
-                <IconButton edge="end" onClick={() => handleDeleteFile(file.id)} sx={{ color: 'red' }}>
-                  <DeleteIcon />
-                </IconButton>
-              </ListItem>
-            ))}
+            {folder.files?.map(renderFile)}
           </List>
         </Collapse>
       </div>
     );
   };
 
-  const renderItem = (item: Item) => {
-    if (item.type === "folder") {
-      return renderFolder(item as Folder);
-    } else {
-      return (
-        <ListItem key={item.id} component="button" onClick={() => handleFileClick(item as File)}>
-          <ListItemAvatar>
-            <Avatar>
-              <FileIcon fileName={item.name} />
-            </Avatar>
-          </ListItemAvatar>
-          <ListItemText
-            primary={item.name}
-            secondary={<a href={item.url} target="_blank" rel="noopener noreferrer">Zobacz plik</a>}
-          />
-          <IconButton edge="end" onClick={() => handleDeleteFile(item.id)} sx={{ color: 'red' }}>
-            <DeleteIcon />
-          </IconButton>
-        </ListItem>
-      );
-    }
-  };
+  const renderFile = (file: File) => (
+    <ListItemButton key={file.id} sx={{ pl: 4 }} onClick={() => handleFileClick(file)}>
+      <ListItemAvatar>
+        <Avatar>
+          <FileIcon fileName={file.name} />
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText
+        primary={file.name}
+        secondary={<a href={file.url} target="_blank" rel="noopener noreferrer">Zobacz plik</a>}
+      />
+      <IconButton edge="end" onClick={() => handleDeleteFile(file.id)} sx={{ color: 'red' }}>
+        <DeleteIcon />
+      </IconButton>
+    </ListItemButton>
+  );
 
   const renderFilePreview = (file: File) => {
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    let content;
     switch (fileExtension) {
       case 'jpg':
       case 'jpeg':
       case 'png':
       case 'gif':
-        return <img src={file.url} alt={file.name} style={{ width: '100%' }} />;
+        content = <img src={file.url} alt={file.name} style={{ width: '100%' }} />;
+        break;
       case 'pdf':
-        return <iframe src={file.url} width="100%" height="400px" title={file.name} />;
+        content = <DocViewer documents={[{ uri: file.url }]} pluginRenderers={DocViewerRenderers} />
+        break;
       case 'txt':
-        return <iframe src={file.url} width="100%" height="400px" title={file.name} />;
+        content = <iframe src={file.url} width="100%" height="400px" title={file.name} />;
+        break;
       case 'xlsx':
+        content =  <DocViewer documents={[{ uri: file.url }]} pluginRenderers={DocViewerRenderers} />;
+        break;
       case 'xls':
-        return <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${file.url}`} width="100%" height="400px" title={file.name} />;
+        content =  <DocViewer documents={[{ uri: file.url }]} pluginRenderers={DocViewerRenderers} />;
+        break;
       default:
-        return <Typography>Nieobsługiwany format pliku</Typography>;
+        content = <Typography>Nieobsługiwany format pliku</Typography>;
     }
-  };
 
+    return (
+      <Drawer
+        anchor="right"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        sx={{ '& .MuiDrawer-paper': { width: '40%' } }}
+      >
+        <Box sx={{ padding: 4 }}>
+          <Typography variant="h6">{file.name}</Typography>
+          {content}
+        </Box>
+      </Drawer>
+    );
+  };
   return (
     <Box sx={{ padding: 4 }}>
       <Typography variant="h4" mb={2}>
         Pliki i Foldery
       </Typography>
-      <List sx={{ width: '100%', maxWidth: 360, color: 'white' }}>
-        {items.map(renderItem)}
-      </List>
-      <Drawer
-        anchor="right"
-        open={Boolean(selectedFile)}
-        onClose={() => setSelectedFile(null)}
-        PaperProps={{ sx: { bgcolor: 'gray' } }}
+      <List
+        sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
+        component="nav"
+        aria-labelledby="nested-list-subheader"
       >
-        <Box sx={{ width: 300, padding: 2 }}>
-          {selectedFile && (
-            <>
-              <Typography variant="h6">{selectedFile.name}</Typography>
-              {renderFilePreview(selectedFile)}
-            </>
-          )}
+        {renderFolder(items)}
+      </List>
+      {selectedFile && (
+        <Box sx={{ marginTop: 4 }}>
+          {renderFilePreview(selectedFile)}
         </Box>
-      </Drawer>
+      )}
     </Box>
   );
 };

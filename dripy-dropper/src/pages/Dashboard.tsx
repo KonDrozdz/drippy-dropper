@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useQuery } from "react-query";
 import axios from "axios";
-import { Typography, Button, List, ListItem, ListItemText } from "@mui/material";
+import { Typography, Button, List, ListItem, SnackbarCloseReason, Snackbar } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import NestedFileList from "../components/NestedFileList"; // Import the new NestedFileList component
-
+import { Folder } from "../interfaces/Folder"; // Import the Folder interface from the new file
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 const Dashboard: React.FC = () => {
-  const [filesAndFolders, setFilesAndFolders] = useState<any[]>([]); // Zmienna stanu do przechowywania plików i folderów
+  const [filesAndFolders, setFilesAndFolders] = useState<Folder | null>(null); // Update the type of filesAndFolders
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]); // Zmienna stanu do przechowywania wybranych plików
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
 
   // Pobieranie plików i folderów
   const { data: fetchedData, refetch } = useQuery<any>("files", async () => {
@@ -20,6 +22,16 @@ const Dashboard: React.FC = () => {
     return response.data;
   });
 
+  const handleClose = (
+    event: React.SyntheticEvent | Event,
+    reason?: SnackbarCloseReason,
+  ) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
   useEffect(() => {
     if (fetchedData) {
       setFilesAndFolders(fetchedData); // Ustawienie danych plików i folderów
@@ -68,6 +80,7 @@ const Dashboard: React.FC = () => {
       }
       refetch(); // Refresh the file list after upload
       setSelectedFiles([]); // Clear the selected files
+      setOpen(true);
     } catch (error) {
       console.error("Error uploading file:", error);
     }
@@ -84,22 +97,33 @@ const Dashboard: React.FC = () => {
 
       <div {...getRootProps()} style={{ border: '2px dashed gray', padding: 16, textAlign: 'center', marginTop: 16 }}>
         <input {...getInputProps()} />
-        <Typography>Przeciągnij i upuść pliki tutaj, lub kliknij aby wybrać pliki</Typography>
+        <Typography>
+          <CloudUploadIcon/>
+          <br/>
+          Przeciągnij i upuść pliki tutaj, lub kliknij aby wybrać pliki
+        </Typography>
         <List>
           {selectedFiles.map((file) => (
-            <ListItem key={file.name}>
-              <ListItemText primary={file.name} />
-            </ListItem>
+        <ListItem key={file.name}></ListItem>
           ))}
         </List>
       </div>
       <Button variant="contained" color="primary" onClick={handleUpload} disabled={selectedFiles.length === 0} style={{ marginTop: 16 }}>
         Prześlij pliki
       </Button>
+      
 
-      <NestedFileList
-        items={filesAndFolders}
-        handleDeleteFile={handleDeleteFile}
+      {filesAndFolders && (
+        <NestedFileList
+          items={filesAndFolders as Folder} // Ensure the type matches the expected Folder type
+          handleDeleteFile={handleDeleteFile}
+        />
+      )}
+        <Snackbar
+        open={open}
+        autoHideDuration={5000}
+        onClose={handleClose}
+        message="This Snackbar will be dismissed in 5 seconds."
       />
     </>
   );

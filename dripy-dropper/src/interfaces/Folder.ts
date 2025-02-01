@@ -1,12 +1,24 @@
 export interface File {
-  id: string;
+  fileId: string;
   name: string;
-  url: string;
+  size: number;
+  path: string;
+  contentType: string;
+  createdAt: string;
 }
+export interface FolderFiles{
+  fileId: string,
+  name: string,
+  size: 0,
+  contentType: string,
+  createdAt: string
+};
+
 
 export interface Folder {
-  id: string;
+  folderId: string;
   name: string;
-  subfolders?: Folder[];
-  files?: File[];
+  files?: FolderFiles[];
+  parentFolderId?: string;
+  ownerId: string;
 }

@@ -23,7 +23,7 @@ namespace Drippy_Dropper.API
             builder.Services.AddSingleton(storageSettings);
 
             // Add services to the container.
-
+            
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -56,7 +56,7 @@ namespace Drippy_Dropper.API
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
                 };
             });
-
+            builder.Services.AddCors();
 
             var app = builder.Build();
 
@@ -68,7 +68,7 @@ namespace Drippy_Dropper.API
             }
 
             app.UseAuthorization();
-
+            app.UseCors(x=>x.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
             app.MapControllers();
 

@@ -1,0 +1,6 @@
+@Drippy_Dropper.API_HostAddress = http://localhost:5052
+
+GET {{Drippy_Dropper.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
